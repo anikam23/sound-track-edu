@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+# Keep Package.resolved tracked (do not ignore it)
+
+# CocoaPods (uncomment next two if you use Pods and want to keep Pods out of Git)
+# Pods/
+# Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Secrets / local config
+Config/Secrets.xcconfig
