@@ -1,84 +1,151 @@
 import SwiftUI
 
-/// Review tab – clean list (no transcript preview). Shows date • subject • period.
+/// Review tab – organized by Period/Subject with clean grouping
 struct ReviewView: View {
     @EnvironmentObject private var store: TranscriptStore
     @State private var query: String = ""
+    @State private var showingSummary: TranscriptRecord?
 
-    // Filter to subject/period/title only
-    private var filtered: [TranscriptRecord] {
+    // Group records by subject + period, then by date
+    private var groupedRecords: [(String, [(String, [TranscriptRecord])])] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !q.isEmpty else { return store.records }
-        return store.records.filter {
-            $0.displayTitle.lowercased().contains(q) ||
-            String($0.period).contains(q) ||
-            $0.subject.lowercased().contains(q)
+        let filtered = q.isEmpty ? store.records : store.records.filter {
+            $0.displayTitle.lowercased().contains(q)
+            || String($0.period).contains(q)
+            || $0.subject.lowercased().contains(q)
         }
+
+        let subjectPeriodGroups = Dictionary(grouping: filtered) { r in
+            "\(r.subject) • Period \(r.period)"
+        }
+
+        return subjectPeriodGroups
+            .map { (subjectPeriod, records) in
+                let df = DateFormatter()
+                df.dateFormat = "MMM d, yyyy"
+                let dateGroups = Dictionary(grouping: records) { df.string(from: $0.createdAt) }
+                let sortedDateGroups = dateGroups.sorted { $0.key > $1.key }
+                return (subjectPeriod, sortedDateGroups)
+            }
+            .sorted { $0.0 < $1.0 }
     }
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(filtered) { rec in
-                    NavigationLink(value: rec) {
-                        TranscriptRow(rec: rec)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            store.delete(rec)                    // ← delete by record
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+                ForEach(groupedRecords, id: \.0) { subjectPeriod, dateGroups in
+                    Section {
+                        ForEach(dateGroups, id: \.0) { dateString, records in
+                            // Date chip (neutral, warm)
+                            Text(dateString)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .fill(Theme.card) // uses your lighter airy option
+                                )
+                                .listRowBackground(Theme.beige)
 
-                        Button {
-                            let url = ShareHelper.temporaryFile(for: rec)
-                            ShareHelper.presentShareSheet(with: [url])
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
+                            // Card rows
+                            ForEach(records.sorted { $0.createdAt > $1.createdAt }) { record in
+                                NavigationLink(value: record) {
+                                    TranscriptRowCard(record: record) {
+                                        showingSummary = record
+                                    }
+                                }
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Theme.beige)
+                            }
                         }
-                        .tint(.blue)
+                    } header: {
+                        Text(subjectPeriod)
+                            .textCase(nil)
+                            .font(.headline)
+                            .foregroundStyle(Theme.accent)
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Review")
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
-            .navigationDestination(for: TranscriptRecord.self) { rec in
-                TranscriptDetailView(record: rec)
-            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Theme.beige.ignoresSafeArea())
-            .tint(Theme.accent)
+            .navigationTitle("Review")
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationDestination(for: TranscriptRecord.self) { record in
+                TranscriptDetailView(record: record)
+            }
+        }
+        .tint(Theme.accent)
+        .sheet(item: $showingSummary) { record in
+            SummaryDetailView(record: record)
         }
     }
 }
 
-private struct TranscriptRow: View {
-    let rec: TranscriptRecord
+// MARK: - Transcript Row (time on top, transcript below)
+// Uses Theme.card (your lighter airy value), plus very subtle border + shadow.
+private struct TranscriptRowCard: View {
+    let record: TranscriptRecord
+    let onSummaryTap: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.spacing) {
-            Text(rec.displayTitle)                // e.g. "Biology • Period 1"
-                .font(.title2).bold()
-                .lineLimit(1)
+        HStack(alignment: .top, spacing: 12) {
 
-            HStack(spacing: 12) {
-                Label(rec.subject, systemImage: "book.closed")
-                Label("Period \(rec.period)", systemImage: "clock")
-                Spacer()
-                Text(timeOnly)
+            // Left stack: time on its own line, transcript below (full width)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(timeString)
+                    .font(.subheadline.monospacedDigit())
+                    .fontWeight(.medium)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                if !record.text.isEmpty {
+                    Text(record.text)
+                        .font(.body)
+                        .foregroundStyle(Theme.primaryText)
+                        .lineLimit(3)
+                } else {
+                    Text(record.title.isEmpty ? "Untitled" : record.title)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(Theme.primaryText)
+                        .lineLimit(1)
+                }
             }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .padding(.vertical, 6)
+
+            Spacer(minLength: 8)
+
+            // Summary indicator
+            if record.summary?.isEmpty == false {
+                Button(action: onSummaryTap) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(Theme.accent)
+                        .font(.title3)
+                        .padding(6)
+                        .background(Theme.accent.opacity(0.10), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("View AI summary")
+            }
         }
-        .padding(.vertical, 6)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Theme.card)
+                .shadow(color: .black.opacity(0.06), radius: 3, x: 0, y: 1) // subtle pop
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Theme.accent.opacity(0.05), lineWidth: 0.25) // hairline border
+        )
+        .padding(.vertical, 4)
     }
 
-    private var timeOnly: String {
+    private var timeString: String {
         let df = DateFormatter()
         df.dateStyle = .none
         df.timeStyle = .short
-        return df.string(from: rec.createdAt)
+        return df.string(from: record.createdAt)
     }
 }

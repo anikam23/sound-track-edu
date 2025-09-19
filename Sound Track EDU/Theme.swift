@@ -6,15 +6,23 @@ struct Theme {
     static let beige  = Color(.sRGB, red: 0.98, green: 0.96, blue: 0.90, opacity: 1)
 
     // Surfaces
-    static let background: Color = Color(UIColor.systemBackground)
-    static let card: Color        = Color(UIColor.secondarySystemBackground) // ← added
+    // --- Pick ONE of these card values and comment out the others ---
+    
+    // Option A — slightly lighter (airy, subtle)
+    static let card = Color(.sRGB, red: 0.98, green: 0.96, blue: 0.91, opacity: 1.0)
+
+    // Option B — slightly darker (adds more pop / contrast)
+    // static let card = Color(.sRGB, red: 0.95, green: 0.93, blue: 0.87, opacity: 1.0)
+
+    // Current / default (in-between)
+    // static let card  = Color(.sRGB, red: 0.97, green: 0.95, blue: 0.90, opacity: 1.0)
 
     // Text
     static let primaryText: Color = .primary
-    static let subtext: Color     = .secondary                                // ← added earlier
+    static let subtext: Color     = .secondary
 
     // Layout
-    static let spacing: CGFloat   = 12                                        // ← added earlier
+    static let spacing: CGFloat   = 12
 
     // Buttons
     struct FilledButtonStyle: ButtonStyle {

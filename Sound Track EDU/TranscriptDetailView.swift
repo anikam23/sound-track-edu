@@ -3,6 +3,8 @@ import SwiftUI
 struct TranscriptDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var store: TranscriptStore
+    @StateObject private var aiService = AISummaryService()
+    @State private var showingSummary = false
 
     let record: TranscriptRecord
 
@@ -12,13 +14,29 @@ struct TranscriptDetailView: View {
                 Text(record.displayTitle)
                     .font(.headline)
 
-                Text(record.text)
+                Text(record.text.isEmpty ? "No transcript content available" : record.text)
                     .font(.title3)
                     .foregroundStyle(.primary)
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                
+                // Debug information
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Debug Info:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Text length: \(record.text.count)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Has summary: \(record.summary?.isEmpty == false ? "Yes" : "No")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .background(.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .padding()
         }
@@ -27,11 +45,27 @@ struct TranscriptDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                // Placeholder summarize action (no OpenAI call yet)
-                Button {
-                    summarizePlaceholder()
-                } label: {
-                    Label("Summarize", systemImage: "text.insert")
+                // AI Summary action
+                if record.summary?.isEmpty == false {
+                    Button {
+                        showingSummary = true
+                    } label: {
+                        Label("View Summary", systemImage: "sparkles")
+                    }
+                } else {
+                    Button {
+                        Task {
+                            await generateSummary()
+                        }
+                    } label: {
+                        if aiService.isLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Label("Generate Summary", systemImage: "sparkles")
+                        }
+                    }
+                    .disabled(aiService.isLoading)
                 }
 
                 // Share as a temporary text file
@@ -51,13 +85,31 @@ struct TranscriptDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingSummary) {
+            SummaryDetailView(record: record)
+        }
+        .alert("Summary Error", isPresented: .constant(aiService.errorMessage != nil)) {
+            Button("OK") {
+                aiService.errorMessage = nil
+            }
+        } message: {
+            Text(aiService.errorMessage ?? "")
+        }
     }
 
-    private func summarizePlaceholder() {
-        // For now, just a lightweight toast-like feedback
-        // (Replace later with real summary flow)
-        #if DEBUG
-        print("Summarize tapped for: \(record.displayTitle)")
-        #endif
+    private func generateSummary() async {
+        guard let summary = await aiService.generateSummary(
+            for: record.text,
+            subject: record.subject,
+            period: record.period
+        ) else {
+            return
+        }
+        
+        // Update the record with the new summary
+        store.updateSummary(for: record.id, summary: summary)
+        
+        // Show the summary
+        showingSummary = true
     }
 }

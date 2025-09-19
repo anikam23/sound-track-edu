@@ -32,6 +32,13 @@ final class TranscriptStore: ObservableObject {
             saveNow()
         }
     }
+    
+    func updateSummary(for recordId: UUID, summary: String) {
+        if let idx = records.firstIndex(where: { $0.id == recordId }) {
+            records[idx].summary = summary
+            saveNow()
+        }
+    }
 
     // MARK: - Persistence
     private func load() {
