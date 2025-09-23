@@ -21,22 +21,6 @@ struct TranscriptDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
-                
-                // Debug information
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Debug Info:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("Text length: \(record.text.count)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("Has summary: \(record.summary?.isEmpty == false ? "Yes" : "No")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .background(.gray.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .padding()
         }

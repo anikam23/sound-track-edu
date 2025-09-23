@@ -16,7 +16,8 @@ struct ReviewView: View {
         }
 
         let subjectPeriodGroups = Dictionary(grouping: filtered) { r in
-            "\(r.subject) • Period \(r.period)"
+            let teacherText = r.teacher.isEmpty ? "" : " • \(r.teacher)"
+            return "\(r.subject) • \(r.termDisplay) • Period \(r.period)\(teacherText)"
         }
 
         return subjectPeriodGroups

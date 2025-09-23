@@ -24,11 +24,15 @@ struct LiveTabView: View {
                         withAnimation(.easeOut) { jumpToken.toggle() }
                     } label: {
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(.white)
-                            .frame(width: 48, height: 48)
-                            .background(Theme.accent, in: Circle())
-                            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 40, height: 40)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(.secondary.opacity(0.2), lineWidth: 0.5)
+                            )
+                            .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 72)      // sits above the bottom controls
@@ -43,14 +47,17 @@ struct LiveTabView: View {
             .sheet(isPresented: $showSaveSheet) {
                 SaveTranscriptSheet(
                     titleDefault: defaultSuggestedTitle()
-                ) { title, period, subject in
+                ) { title, subject, teacher, period, term, termNumber in
                     let record = TranscriptRecord(
                         id: UUID(),
                         createdAt: Date(),
                         title: title,
                         text: transcriber.text,
                         period: period,
-                        subject: subject
+                        subject: subject,
+                        teacher: teacher,
+                        term: term,
+                        termNumber: termNumber
                     )
                     store.add(record: record)
                     transcriber.resetAll()
