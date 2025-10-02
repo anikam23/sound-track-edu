@@ -405,6 +405,8 @@
 				DEVELOPMENT_TEAM = 69X45K2QRY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Sound-Track-EDU-Info.plist";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Allows nearby devices to send classroom alerts over the local network.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech in real time.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app needs speech recognition access to convert your speech into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -435,6 +437,8 @@
 				DEVELOPMENT_TEAM = 69X45K2QRY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Sound-Track-EDU-Info.plist";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Allows nearby devices to send classroom alerts over the local network.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech in real time.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app needs speech recognition access to convert your speech into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

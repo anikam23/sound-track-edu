@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var store = TranscriptStore()
-
     var body: some View {
         TabView {
             LiveTabView()
@@ -11,12 +9,11 @@ struct ContentView: View {
             ReviewView()
                 .tabItem { Label("Review", systemImage: "doc.text.magnifyingglass") }
 
-            TeacherModeView() // your existing file
-                .tabItem { Label("Teacher", systemImage: "graduationcap.fill") }
+            TeacherModeView()
+                .tabItem { Label("Alerts", systemImage: "bell.fill") }
         }
         .tint(Theme.accent)
         .background(Theme.beige.ignoresSafeArea())
-        .environmentObject(store)
     }
 }
 

@@ -3,6 +3,8 @@ import SwiftUI
 /// Review tab – organized by Period/Subject with clean grouping
 struct ReviewView: View {
     @EnvironmentObject private var store: TranscriptStore
+    @EnvironmentObject private var alertSync: AlertSyncService
+    @StateObject private var hudManager = AlertHUDManager()
     @State private var query: String = ""
     @State private var showingSummary: TranscriptRecord?
 
@@ -79,6 +81,12 @@ struct ReviewView: View {
             }
         }
         .tint(Theme.accent)
+        .alertBannerOverlay(hudManager)
+        .onChange(of: alertSync.lastReceivedAlert) { _, newAlert in
+            if let alert = newAlert {
+                hudManager.showAlert(alert)
+            }
+        }
         .sheet(item: $showingSummary) { record in
             SummaryDetailView(record: record)
         }

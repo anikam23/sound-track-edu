@@ -2,7 +2,9 @@ import SwiftUI
 
 struct LiveTabView: View {
     @EnvironmentObject private var store: TranscriptStore
+    @EnvironmentObject private var alertSync: AlertSyncService
     @StateObject private var transcriber = LiveTranscriber()
+    @StateObject private var hudManager = AlertHUDManager()
 
     @State private var showSaveSheet = false
     @State private var followLatest = true
@@ -44,6 +46,12 @@ struct LiveTabView: View {
             }
             .background(Theme.beige.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) { controlsBar }
+            .alertBannerOverlay(hudManager)
+            .onChange(of: alertSync.lastReceivedAlert) { _, newAlert in
+                if let alert = newAlert {
+                    hudManager.showAlert(alert)
+                }
+            }
             .sheet(isPresented: $showSaveSheet) {
                 SaveTranscriptSheet(
                     titleDefault: defaultSuggestedTitle()

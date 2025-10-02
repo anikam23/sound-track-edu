@@ -32,3 +32,4 @@ func testOpenAIKey() async {
         print("Error: \(error)")
     }
 }
+
