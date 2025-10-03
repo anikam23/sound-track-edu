@@ -27,3 +27,4 @@ fastlane/test_output
 # Secrets / local config
 Config/Secrets.xcconfig
 Secrets.plist
+VendorModels/
