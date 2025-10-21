@@ -36,6 +36,42 @@ enum ShareHelper {
         try? body.data(using: .utf8)?.write(to: url, options: .atomic)
         return url
     }
+    
+    /// Build a simple .txt export for a chat session and return the temporary file URL.
+    static func temporaryFile(for session: ChatSession) -> URL {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .short
+        let dateLine = df.string(from: session.createdAt)
+
+        var lines: [String] = []
+        lines.append(session.discussionTopic.isEmpty ? session.title : session.discussionTopic)
+        lines.append("Date: \(dateLine)")
+        lines.append("Subject: \(session.subject)")
+        lines.append("Period: \(session.period)")
+        lines.append("Teacher: \(session.teacher)")
+        lines.append("Term: \(session.termDisplay)")
+        lines.append("Participants: \(session.roster.map { $0.displayName }.joined(separator: ", "))")
+        lines.append(String(repeating: "—", count: 30))
+
+        if let summary = session.summary, !summary.isEmpty {
+            lines.append("Summary:")
+            lines.append(summary)
+            lines.append(String(repeating: "—", count: 30))
+        }
+
+        lines.append("Chat Messages:")
+        lines.append(session.chatText)
+
+        let body = lines.joined(separator: "\n\n")
+
+        let tmpDir = FileManager.default.temporaryDirectory
+        let base = (session.discussionTopic.isEmpty ? session.title : session.discussionTopic).sanitizedFilename()
+        let url = tmpDir.appendingPathComponent("\(base).txt")
+
+        try? body.data(using: .utf8)?.write(to: url, options: .atomic)
+        return url
+    }
 
     /// Present the iOS share sheet for a list of file URLs.
     static func presentShareSheet(with urls: [URL]) {

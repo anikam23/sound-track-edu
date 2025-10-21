@@ -20,9 +20,6 @@ class AlertSyncService: NSObject, ObservableObject {
     @Published var lastReceivedAlert: TeacherAlert?
     @Published var connectedStudents: [ConnectedStudent] = []
 
-    // Callback the Student side can set to auto-start transcription
-    var onImportantAlert: (() -> Void)?
-
     // MPC
     private let serviceType = "stedu"
     private(set) var myPeerID: MCPeerID
@@ -45,23 +42,31 @@ class AlertSyncService: NSObject, ObservableObject {
 
     // MARK: Entry points (Teacher / Student)
 
-    /// Start advertising & browsing as the **Teacher**. The teacher’s visible name will be `roleName`.
+    /// Start advertising & browsing as the **Teacher**. The teacher's visible name will be `roleName`.
     func startTeacher(roleName: String) {
         print("👨‍🏫 Starting teacher mode for: \(roleName)")
+        print("👨‍🏫 Service type: \(serviceType)")
+        print("👨‍🏫 My peer ID: \(myPeerID.displayName)")
+        
         rebuildSession(withDisplayName: roleName)
 
         // Advertise as teacher
         let discoveryInfo = ["role": "teacher", "name": roleName]
+        print("👨‍🏫 Discovery info: \(discoveryInfo)")
+        
         advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: discoveryInfo, serviceType: serviceType)
         advertiser?.delegate = self
+        print("👨‍🏫 Starting advertiser...")
         advertiser?.startAdvertisingPeer()
 
         // Browse for students
         browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
         browser?.delegate = self
+        print("👨‍🏫 Starting browser...")
         browser?.startBrowsingForPeers()
 
         updateConnectionStatus()
+        print("👨‍🏫 ✅ Teacher mode started with status: \(connectionStatus)")
     }
 
     /// Start advertising as the **Student**. The student’s visible name will be `<displayName>-XXXX`.
@@ -147,6 +152,8 @@ class AlertSyncService: NSObject, ObservableObject {
     // MARK: Internals
 
     private func rebuildSession(withDisplayName name: String) {
+        print("🔄 Rebuilding session with display name: \(name)")
+        
         // Tear down
         advertiser?.stopAdvertisingPeer()
         browser?.stopBrowsingForPeers()
@@ -162,6 +169,8 @@ class AlertSyncService: NSObject, ObservableObject {
         myPeerID = MCPeerID(displayName: name)
         session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
         session.delegate = self
+        
+        print("🔄 ✅ Session rebuilt successfully")
     }
 
     private func updateConnectionStatus() {
@@ -180,9 +189,6 @@ class AlertSyncService: NSObject, ObservableObject {
         lastReceivedAlert = alert
         triggerAlertFeedback(for: alert.type)
         scheduleBackgroundNotification(for: alert)
-        if alert.type == .importantNow {
-            onImportantAlert?()
-        }
     }
 
     private func triggerAlertFeedback(for type: TeacherAlertType) {

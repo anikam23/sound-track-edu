@@ -13,23 +13,26 @@ struct Sound_Track_EDUApp: App {
     @StateObject private var profileStore = ProfileStore()
     @StateObject private var alertSyncService = AlertSyncService()
     @StateObject private var liveTranscriber = LiveTranscriber()
+    @StateObject private var hudManager = AlertHUDManager()
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreenView()
                 .environmentObject(transcriptStore)
                 .environmentObject(profileStore)
                 .environmentObject(alertSyncService)
                 .environmentObject(liveTranscriber)
+                .environmentObject(hudManager)
                 .onAppear {
-                    // Request notification permissions on first launch
-                    alertSyncService.requestNotificationPermissions()
+                    // Defer permission requests to avoid blocking UI
+                    Task {
+                        // Request notification permissions on first launch
+                        await alertSyncService.requestNotificationPermissions()
+                    }
                     
-                    // Set up auto-start transcription callback
-                    alertSyncService.onImportantAlert = { [weak liveTranscriber] in
-                        Task {
-                            await liveTranscriber?.start()
-                        }
+                    // Set up shared HUD manager to start transcription
+                    hudManager.onStartTranscription = { [weak liveTranscriber] in
+                        await liveTranscriber?.start()
                     }
                 }
         }

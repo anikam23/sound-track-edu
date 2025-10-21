@@ -27,9 +27,9 @@ struct TranscriptRecord: Identifiable, Codable, Hashable {
     var termDisplay: String {
         switch term.lowercased() {
         case "semester":
-            return "Sem \(termNumber)"
+            return "S\(termNumber)"
         case "trimester":
-            return "Tri \(termNumber)"
+            return "T\(termNumber)"
         case "quarter":
             return "Q\(termNumber)"
         default:

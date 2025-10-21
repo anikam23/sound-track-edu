@@ -1,19 +1,18 @@
 import SwiftUI
 
-struct SaveTranscriptSheet: View {
+struct SaveChatSheet: View {
     @Environment(\.dismiss) private var dismiss
-
-    @State private var title: String
-    @State private var period: String = ""
+    
+    @State private var discussionTopic: String = ""
     @State private var subject: String = ""
     @State private var teacher: String = ""
+    @State private var period: String = ""
     @State private var term: String = "Semester"
     @State private var termNumber: String = "1"
-
+    
     let onSave: (String, String, String, String, String, String) -> Void
-
-    init(titleDefault: String, onSave: @escaping (String, String, String, String, String, String) -> Void) {
-        _title = State(initialValue: titleDefault)
+    
+    init(onSave: @escaping (String, String, String, String, String, String) -> Void) {
         self.onSave = onSave
     }
     
@@ -29,12 +28,12 @@ struct SaveTranscriptSheet: View {
             return 4
         }
     }
-
+    
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Details")) {
-                    TextField("Title", text: $title)
+                    TextField("Discussion Topic", text: $discussionTopic)
                     TextField("Subject (e.g. Biology)", text: $subject)
                     TextField("Teacher", text: $teacher)
                     TextField("Period (e.g. 3)", text: $period)
@@ -65,20 +64,26 @@ struct SaveTranscriptSheet: View {
                     .pickerStyle(.menu)
                 }
             }
-            .navigationTitle("Save Transcript")
+            .navigationTitle("Save Chat")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(title, subject, teacher, period, term, termNumber)
+                        onSave(discussionTopic, subject, teacher, period, term, termNumber)
                         dismiss()
                     }
-                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(discussionTopic.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .dismissKeyboardOnTap()
         }
+    }
+}
+
+#Preview {
+    SaveChatSheet { topic, subject, teacher, period, term, termNumber in
+        print("Saving: \(topic)")
     }
 }

@@ -2,11 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key></key>
-	<string></string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app uses the local network to connect with other devices for classroom chat and teacher alerts.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_stedu._tcp</string>
+		<string>_stedu-chat._tcp</string>
 	</array>
 </dict>
 </plist>

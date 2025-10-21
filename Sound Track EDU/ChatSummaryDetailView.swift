@@ -1,35 +1,35 @@
 import SwiftUI
 
-struct SummaryDetailView: View {
+struct ChatSummaryDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var store: TranscriptStore
     @StateObject private var aiService = AISummaryService()
     
-    let record: TranscriptRecord
+    let session: ChatSession
     
-    // Get the current record from the store to ensure we have the latest data
-    private var currentRecord: TranscriptRecord {
-        store.transcriptRecords.first { $0.id == record.id } ?? record
+    // Get the current session from the store to ensure we have the latest data
+    private var currentSession: ChatSession {
+        store.chatSessions.first { $0.id == session.id } ?? session
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(currentRecord.displayTitle)
+                Text(currentSession.discussionTopic.isEmpty ? currentSession.title : currentSession.discussionTopic)
                     .font(.title)
                     .bold()
 
                 GroupBox("Summary") {
-                    Text(currentRecord.summary?.isEmpty == false
-                         ? currentRecord.summary!
+                    Text(currentSession.summary?.isEmpty == false
+                         ? currentSession.summary!
                          : "No summary yet.\n\nTap **Generate Summary** to create one later.")
                         .font(.body)
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                GroupBox("Original transcript") {
-                    Text(currentRecord.text.isEmpty ? "—" : currentRecord.text)
+                GroupBox("Chat Messages") {
+                    Text(currentSession.chatText.isEmpty ? "—" : currentSession.chatText)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -39,8 +39,8 @@ struct SummaryDetailView: View {
         }
         .navigationTitle("Summary")
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                if currentRecord.summary?.isEmpty == false {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                if currentSession.summary?.isEmpty == false {
                     Button("Done") {
                         dismiss()
                     }
@@ -72,9 +72,9 @@ struct SummaryDetailView: View {
     
     private func generateSummary() async {
         guard let summary = await aiService.generateSummary(
-            for: currentRecord.text,
-            subject: currentRecord.subject,
-            period: currentRecord.period
+            for: currentSession.chatText,
+            subject: currentSession.subject,
+            period: currentSession.period
         ) else {
             print("Failed to generate summary")
             return
@@ -82,9 +82,9 @@ struct SummaryDetailView: View {
         
         print("Generated summary: \(summary)")
         
-        // Update the record with the new summary
-        store.updateSummary(for: currentRecord.id, summary: summary)
+        // Update the session with the new summary
+        store.updateChatSummary(for: currentSession.id, summary: summary)
         
-        print("Updated store with summary for record: \(currentRecord.id)")
+        print("Updated store with summary for session: \(currentSession.id)")
     }
 }
