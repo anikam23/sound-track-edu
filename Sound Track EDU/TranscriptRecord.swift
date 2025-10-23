@@ -20,7 +20,7 @@ struct TranscriptRecord: Identifiable, Codable, Hashable {
     var dateString: String {
         let df = DateFormatter()
         df.dateStyle = .medium
-        df.timeStyle = .short
+        df.timeStyle = .none
         return df.string(from: createdAt)
     }
     

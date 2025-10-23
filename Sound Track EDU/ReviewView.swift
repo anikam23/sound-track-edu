@@ -251,8 +251,8 @@ private struct TranscriptRowCard: View {
 
     private var timeString: String {
         let df = DateFormatter()
-        df.dateStyle = .none
-        df.timeStyle = .short
+        df.dateStyle = .medium
+        df.timeStyle = .none
         return df.string(from: record.createdAt)
     }
 }
@@ -307,8 +307,8 @@ private struct ChatRowCard: View {
     
     private var timeString: String {
         let df = DateFormatter()
-        df.dateStyle = .none
-        df.timeStyle = .short
+        df.dateStyle = .medium
+        df.timeStyle = .none
         return df.string(from: session.createdAt)
     }
     
