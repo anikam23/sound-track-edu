@@ -104,37 +104,45 @@ struct ReviewView: View {
     
     private var transcriptsList: some View {
         List {
-            ForEach(groupedRecords, id: \.0) { subjectPeriod, dateGroups in
-                    Section {
-                        ForEach(dateGroups, id: \.0) { dateString, records in
-                            // Date chip (neutral, warm)
-                            Text(dateString)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .fill(Theme.card) // uses your lighter airy option
-                                )
-                                .listRowBackground(Theme.beige)
+            if groupedRecords.isEmpty {
+                Text("No saved transcripts")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .listRowBackground(Theme.beige)
+            } else {
+                ForEach(groupedRecords, id: \.0) { subjectPeriod, dateGroups in
+                        Section {
+                            ForEach(dateGroups, id: \.0) { dateString, records in
+                                // Date chip (neutral, warm)
+                                Text(dateString)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                            .fill(Theme.card) // uses your lighter airy option
+                                    )
+                                    .listRowBackground(Theme.beige)
 
-                            // Card rows
-                            ForEach(records.sorted { $0.createdAt > $1.createdAt }) { record in
-                                NavigationLink(value: record) {
-                                    TranscriptRowCard(record: record) {
-                                        showingSummary = record
+                                // Card rows
+                                ForEach(records.sorted { $0.createdAt > $1.createdAt }) { record in
+                                    NavigationLink(value: record) {
+                                        TranscriptRowCard(record: record) {
+                                            showingSummary = record
+                                        }
                                     }
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Theme.beige)
                                 }
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Theme.beige)
                             }
+                        } header: {
+                            Text(subjectPeriod)
+                                .textCase(nil)
+                                .font(.headline)
+                                .foregroundStyle(Theme.accent)
                         }
-                    } header: {
-                        Text(subjectPeriod)
-                            .textCase(nil)
-                            .font(.headline)
-                            .foregroundStyle(Theme.accent)
                     }
                 }
             }
@@ -191,7 +199,7 @@ struct ReviewView: View {
     }
 }
 
-// MARK: - Transcript Row (time on top, transcript below)
+// MARK: - Transcript Row (transcript content only, date shown in chip above)
 // Uses Theme.card (your lighter airy value), plus very subtle border + shadow.
 private struct TranscriptRowCard: View {
     let record: TranscriptRecord
@@ -200,14 +208,8 @@ private struct TranscriptRowCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
 
-            // Left stack: time on its own line, transcript below (full width)
+            // Left stack: transcript content (no date, since it's shown in the chip above)
             VStack(alignment: .leading, spacing: 8) {
-                Text(timeString)
-                    .font(.subheadline.monospacedDigit())
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
                 if !record.text.isEmpty {
                     Text(record.text)
                         .font(.body)
@@ -248,13 +250,6 @@ private struct TranscriptRowCard: View {
         )
         .padding(.vertical, 4)
     }
-
-    private var timeString: String {
-        let df = DateFormatter()
-        df.dateStyle = .medium
-        df.timeStyle = .none
-        return df.string(from: record.createdAt)
-    }
 }
 
 // MARK: - Chat Row Card
@@ -263,14 +258,8 @@ private struct ChatRowCard: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Left stack: time on its own line, content below (matching transcript layout)
+            // Left stack: content (no date, since it's shown in the chip above)
             VStack(alignment: .leading, spacing: 8) {
-                Text(timeString)
-                    .font(.subheadline.monospacedDigit())
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                
                 // Show discussion topic or title
                 Text(session.discussionTopic.isEmpty ? (session.title.isEmpty ? "Untitled Chat" : session.title) : session.discussionTopic)
                     .font(.body.weight(.medium))
@@ -289,8 +278,11 @@ private struct ChatRowCard: View {
                         .lineLimit(1)
                 }
             }
-            
             Spacer(minLength: 8)
+            
+            Image(systemName: "chevron.right")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .padding(14)
         .background(
@@ -303,13 +295,6 @@ private struct ChatRowCard: View {
                 .stroke(Theme.accent.opacity(0.05), lineWidth: 0.25)
         )
         .padding(.vertical, 4)
-    }
-    
-    private var timeString: String {
-        let df = DateFormatter()
-        df.dateStyle = .medium
-        df.timeStyle = .none
-        return df.string(from: session.createdAt)
     }
     
     private var participantNames: String {
